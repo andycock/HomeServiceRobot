@@ -9,10 +9,12 @@ double robot_x;
 double robot_y;
 nav_msgs::Odometry pose_msg;
 
-void od_call(const nav_msgs::Odometry::ConstPtr& odom_msg){
+void od_call(const nav_msgs::Odometry::ConstPtr& odom_msg)
+{
   pose_msg = *odom_msg;
   robot_x = pose_msg.pose.pose.position.x;
   robot_y = pose_msg.pose.pose.position.y;
+  // ROS_INFO("odom callback");
 }
 
 
@@ -21,10 +23,10 @@ int main( int argc, char** argv )
   bool robotOnPickUp = false;
   bool robotOnKickOff = false;
 
-  double pickUp_x = 3.0;
-  double pickUp_y = 0.5;
-  double kickOff_x = 1.0;
-  double kickOff_y = 3.0;
+  double pickUp_x = -2.0;
+  double pickUp_y = 0.0;
+  double kickOff_x = 0.1;
+  double kickOff_y = 0.1;
   
   ros::init(argc, argv, "basic_shapes");
   ros::NodeHandle n;
@@ -74,7 +76,7 @@ int main( int argc, char** argv )
 
   marker.lifetime = ros::Duration();
 
-  // Publish the marker
+  // Publish the marker in PickUp area
   while (marker_pub.getNumSubscribers() < 1)
   {
     if (!ros::ok())
@@ -85,43 +87,36 @@ int main( int argc, char** argv )
     sleep(1);
   }
   marker_pub.publish(marker);
-   ros::Duration(5.0).sleep();
-
-   marker.action = visualization_msgs::Marker::DELETE;
-   // Publish the marker
-     while (marker_pub.getNumSubscribers() < 1)
-     {
-       if (!ros::ok())
-       {
-         return 0;
-       }
-       ROS_WARN_ONCE("Please create a subscriber to the marker");
-       sleep(1);
-     }
-     marker_pub.publish(marker);
-
-   ros::Duration(5.0).sleep();
-   marker.pose.position.x = 1.0;
-   marker.pose.position.y = 3.0;
-   marker.action = visualization_msgs::Marker::ADD;
-   // Publish the marker
-     while (marker_pub.getNumSubscribers() < 1)
-     {
-       if (!ros::ok())
-       {
-         return 0;
-       }
-       ROS_WARN_ONCE("Please create a subscriber to the marker");
-       sleep(1);
-     }
-     marker_pub.publish(marker);
-
 
   while(ros::ok())
   {
-    if( abs(robot_x - kickOff_x) < 0.1 && abs(robot_y - kickOff_y) < 0.1)
+    ROS_INFO("robot_x= %f, pickUp_x= %f, robot_y= %f, pickUp_y= %f", robot_x, pickUp_x, robot_y, pickUp_y);
+
+    if( abs(robot_x - pickUp_x) < 0.5 && abs(robot_y - pickUp_y) < 0.5)
     {
+      // Delete marker in pickup area
+      ROS_INFO("Robot near pcikup area");
       marker.action = visualization_msgs::Marker::DELETE;
+      while (marker_pub.getNumSubscribers() < 1)
+      {
+        if (!ros::ok())
+        {
+          return 0;
+        }
+        ROS_WARN_ONCE("Please create a subscriber to the marker");
+        sleep(1);
+      }
+      marker_pub.publish(marker);
+      robotOnPickUp = true;
+    }
+
+    if( robotOnPickUp && abs(robot_x - kickOff_x) < 0.5 && abs(kickOff_y - pickUp_y) < 0.5)
+    {
+      // Spawn marker in kickoff area
+      ROS_INFO("Robot near kickOff area");
+      marker.pose.position.x = kickOff_x;
+      marker.pose.position.y = kickOff_y;
+      marker.action = visualization_msgs::Marker::ADD;
       while (marker_pub.getNumSubscribers() < 1)
       {
         if (!ros::ok())
@@ -134,6 +129,8 @@ int main( int argc, char** argv )
       marker_pub.publish(marker);
     }
 
+    ros::spinOnce();  
+    r.sleep();
   }
 
 
