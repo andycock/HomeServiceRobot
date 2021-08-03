@@ -1,8 +1,5 @@
 #!/bin/sh
 
-#Add home environment
-export TURTLEBOT_GAZEBO_WORLD_FILE=/home/workspace/catkin_ws/src/map/home.world
-
 xterm -e " roslaunch turtlebot_gazebo turtlebot_world.launch " &
 
 sleep 3
