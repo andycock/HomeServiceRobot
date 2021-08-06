@@ -23,10 +23,10 @@ int main( int argc, char** argv )
   bool robotOnPickUp = false;
   bool robotOnKickOff = false;
 
-  double pickUp_x = -2.0;
-  double pickUp_y = 0.0;
+  double pickUp_x = 0.0;
+  double pickUp_y = 1.0;
   double kickOff_x = 0.1;
-  double kickOff_y = 0.1;
+  double kickOff_y = -1.1;
   
   ros::init(argc, argv, "basic_shapes");
   ros::NodeHandle n;
@@ -88,11 +88,18 @@ int main( int argc, char** argv )
   }
   marker_pub.publish(marker);
 
+  //Redefinition variables work around because in amcl_demo.launch initial_pose_a was set to -90.0
+    
+  double rel_pickUp_x = -1.0;
+  double rel_pickUp_y = 0.0;
+  double rel_kickOff_x = 1.1;
+  double rel_kickOff_y = 0.1;
+
   while(ros::ok())
   {
     ROS_INFO("robot_x= %f, pickUp_x= %f, robot_y= %f, pickUp_y= %f", robot_x, pickUp_x, robot_y, pickUp_y);
 
-    if( abs(robot_x - pickUp_x) < 0.5 && abs(robot_y - pickUp_y) < 0.5)
+    if( abs(robot_x - rel_pickUp_x) < 0.5 && abs(robot_y - rel_pickUp_y) < 0.5)
     {
       // Delete marker in pickup area
       ROS_INFO("Robot near pcikup area");
@@ -109,8 +116,9 @@ int main( int argc, char** argv )
       marker_pub.publish(marker);
       robotOnPickUp = true;
     }
+    
 
-    if( robotOnPickUp && abs(robot_x - kickOff_x) < 0.5 && abs(kickOff_y - pickUp_y) < 0.5)
+    if( robotOnPickUp && abs(robot_x - rel_kickOff_x) < 0.5 && abs(robot_y -rel_kickOff_y) < 0.5)
     {
       // Spawn marker in kickoff area
       ROS_INFO("Robot near kickOff area");
