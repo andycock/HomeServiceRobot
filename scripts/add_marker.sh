@@ -12,4 +12,4 @@ xterm -e " roslaunch turtlebot_rviz_launchers view_navigation.launch " &
 
 sleep 3
 
-xterm -e " rosrun  add_markers add_markers ; bash "
+xterm -e " rosrun  add_markers add_marker_static ; bash "
